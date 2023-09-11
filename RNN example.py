@@ -7,6 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1hZZTjUEQ_u7Vct9hWwPz3yxFCj8pAJkp
 """
 # 서울시립대 전종준 교수님 4050 11주차 특강
+## 데이터 출처 : http://ranking.uos.ac.kr/class/RB/stock data.csv
 
 import torch
 import torch.nn as nn
