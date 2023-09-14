@@ -1,0 +1,153 @@
+\documentclass{article}
+
+\usepackage{amsmath, amsthm, amssymb, amsfonts}
+\usepackage{thmtools}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{framed}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tcolorbox}
+\usepackage{kotex}
+\usepackage{indentfirst}
+
+\setlength{\parindent}{0.2in} % 들여쓰기 길이 설정
+\setlength{\parskip}{1mm} % 문단 간의 간격 조절
+
+\colorlet{LightGray}{White!90!Periwinkle}
+\colorlet{LightOrange}{Orange!15}
+\colorlet{LightGreen}{Green!15}
+
+\newcommand{\HRule}[1]{\rule{\linewidth}{#1}}
+
+\declaretheoremstyle[name=Theorem,]{thmsty}
+\declaretheorem[style=thmsty,numberwithin=section]{theorem}
+\tcolorboxenvironment{theorem}{colback=LightGray}
+
+\declaretheoremstyle[name=Proposition,]{prosty}
+\declaretheorem[style=prosty,numberlike=theorem]{proposition}
+\tcolorboxenvironment{proposition}{colback=LightOrange}
+
+\declaretheoremstyle[name=Principle,]{prcpsty}
+\declaretheorem[style=prcpsty,numberlike=theorem]{principle}
+\tcolorboxenvironment{principle}{colback=LightGreen}
+
+\setstretch{1.2}
+\geometry{
+    textheight=9in,
+    textwidth=5.5in,
+    top=1in,
+    headheight=12pt,
+    headsep=25pt,
+    footskip=30pt
+}
+
+% ------------------------------------------------------------------------------
+
+\begin{document}
+
+% ------------------------------------------------------------------------------
+% Cover Page and ToC
+% ------------------------------------------------------------------------------
+
+\title{ \normalsize \textsc{}
+		\\ [2.0cm]
+		\HRule{1.5pt} \\
+		\LARGE \textbf{\uppercase{Feature Noising \\ for Log-linear Structured       Prediction}
+		\HRule{2.0pt} \\ [0.6cm] \LARGE{논문 리뷰} \vspace*{10\baselineskip}}
+		}
+\date{}
+
+\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+
+% ------------------------------------------------------------------------------
+\section{요약}
+
+NLP(Natural Language Processing) 모델은 많고 희소한 feature들을 갖고 있으며, 정규화(\textbf{regularization})는 모델의 과적합과 과소적합의 밸런스 유지에 중요합니다. 최근에 조명되는 정규화 방법 중 하나는 실제 데이터에 반복적으로 노이즈를 추가하여 fake training data를 생성하는 것입니다. 이러한 노이징을 정규화로 재해석하고, 가짜 데이터를 생성하지 않고도 훈련 중에 사용할 수 있는 \textbf{2차 공식으로 근사}하는 방법을 소개합니다. 이 방법은 \textbf{다항 로지스틱 회귀} 및 \textbf{CRF}(Conditional Random Field)를 사용한 구조화된 예측에 적용하는 방법을 설명합니다. 정규화 항을 효율적으로 계산하기 위한 \textbf{dynamic programming}이라는 핵심 과제를 다루며, 이 정규화 항은 입력 값의 합으로 이루어져 있으므로 \textbf{semi-supervised learning} 또는 \textbf{transductive extension}을 통해 더 정확하게 추정할 수 있습니다. 텍스트 분류, 개체명 인식(Named Entity Recognition)에 적용한 결과, 우리의 방법은 표준 L2 정규화 사용 대비 성능 향상이 \textbf{1\% 이상}을 제공합니다.
+% ------------------------------------------------------------------------------
+\section{소개}
+NLP 모델은 수백만 이상의 희소한 feature들을 가지고 있습니다. 결과적으로, 가중치 정규화를 통한 과적합과 과소적합을 균형잡는 것은 최적의 성능을 달성하기 위한 핵심 이슈입니다. 전통적으로는 L2 또는 L1 정규화가 사용되지만, 이러한 심플한 유형은 실제 모델의 특성을 고려하지 않고 모든 feature들을 균일하게 페널티를 부과합니다.\\
+
+정규화의 대안적 접근 방식은 원래 훈련 데이터의 input feature에 노이즈를 랜덤하게 추가하여 가짜 훈련 데이터를 생성하는 것입니다. \textit{직관적으로 이것은 맞춤법 오류 또는 이전에 본 적 없는 동의어를 사용할 때와 같이 누락된 feature들을 시뮬레이션하는 것으로 생각할 수 있습니다.} 이 기술의 효과는 기계 학습에서 잘 알려져 있지만, corrupt된 데이터셋 사본을 직접 다루는 것은 계산적으로 불가능할 수 있습니다. 다행히, feature noising 아이디어는 종종 직접 최적화할 수 있는 추적 가능한 결정적 목표로 이어집니다. 때로는 corrupt된 feature들로 훈련하는 것이 정규화의 특별한 형태로 축소되기도 합니다. 예를 들어, Bishop (1995)는 addtive gausian noise로 corrupt된 feature로 훈련하는 것이 낮은 노이즈로 제한한 L2 정규화의 형태와 동등하다는 것을 보였습니다. 다른 경우에는 인위적인 노이즈를 marginalizing하여 새로운 objective function을 개발하는 것이 가능합니다.\\
+
+이 논문의 핵심 기여는 실제로 노이즈 데이터를 생성하지 않고도 log-linear structured prediction에서 인위적으로 노이즈된 feature들로 훈련을 효과적으로 시뮬레이션하는 방법을 보여주는 것입니다. 본문에서 feature noise로 최근 핫한 \textbf{dropout noise}(Hinton et al., 2012)에 집중합니다. 이것은 각 training 예제마다 독립적으로 feature의 무작위 부분 집합을 생략하는 방식으로 동작합니다. Dropout 및 그 변형은 다양한 작업에서 L2 정규화를 능가하는 것으로 입증되었습니다. Dropout은 feauture를 의도적으로 제거하는 feature bagging과 유사합니다. 그러나 다른점은 feature bagging은 무작위로 제거하는 대신 Dropout은 미리 설정된 방식으로 제거를 수행합니다.\\
+
+우리의 접근 방식은 Bishop (1995) 및 Wager et al. (2013) 등에 의해 개발된 feature noising의 2차 근사에 기반하며, 이를 통해 dropout noise를 적응형 정규화의 형태로 변환할 수 있습니다. 이 방법은 2차 도함수를 계산할 수 있는 로그-선형 모델의 구조화된 예측에 적합합니다. 특히, 이는 최대 엔트로피 모델(소프트맥스 또는 다항 로지스틱 회귀라고도 함)을 사용한 \textbf{다중 클래스 분류} 및 NLP에서 일반적인 시퀀스 모델인 선형 체인 조건부 랜덤 필드(\textbf{CRFs})를 통해 사용할 수 있습니다.\\
+
+linear-chain CRF의 경우, 우리는 \textbf{클리크 구조}를 활용하는 noising scheme을 어떻게 사용할 수 있는지 추가로 보여줍니다. 이를 통해 결과적인 노이징 정규화 항을 pairwise marginals로 계산할 수 있습니다. 그런 다음 단순한 전진-후진 형태의 dp를 사용하여 추적 가능한 gradient를 계산할 수 있습니다. 구현의 편의성과 semi-supervised로 확장성을 위해 더 빠른 정규화 근사도에 대한 개요도 제공합니다. 일반적인 접근 방식은 클리크 mariginals를 효율적으로 계산할 수 있는 경우에 선형 체인 이외의 다른 클리크 구조에서도 작동합니다.\\
+
+마지막으로, 우리는 구조화된 예측을 위한 feature noising을 transductive 또는 semi-supervised 세팅으로 확장합니다. feature noising에 의해 유발된 정규화 항은 로그-선형 모델에서 레이블에 독립적이므로 레이블이 없는 데이터를 사용하여 더 나은 정규화를 학습할 수 있습니다. NLP 시퀀스 라벨링 작업은 특히 semi-supervised 접근에 적합하며, input feature이 많지만 희소하며, 레이블이 달린 데이터를 얻는 것이 비용이 많이 들지만 레이블이 없는 데이터는 풍부하기 때문입니다.\\
+
+Wager et al. (2013)은 로지스틱 회귀에 대한 semi-supervised dropout training이 엔트로피 정규화(Grandvalet and Bengio, 2005) 및 변환 SVM(Joachims, 1999)과 같은 기법과 유사한 직관을 포착한다는 것을 보여주었고, 이는 레이블이 지정되지 않은 데이터에 대한 자신감 있는 예측을 장려합니다. 이러한 기법들은 라벨이 없는 데이터에서 확신 있는 예측을 장려하는 것입니다. semi-supervised dropout은 라벨이 없는 데이터에서 예측된 라벨 확률만 사용하여 L2 정규화를 조절하는 장점이 있으며, 엔트로피 정규화나 예상 정규화(Mann and McCallum, 2007)와 같이 보다 무겁게 처리하는 대신에 활용됩니다.\\
+
+실험 결과에서 보여주는 바는, 시뮬레이션된 feature noising이 텍스트 분류 및 명명 Entity Recognition (NER) 순차 라벨링 작업에서 L2 정규화 대비 성능을 1\% 이상 절대적으로 향상시킨다는 것입니다.
+
+\section{Feature noising Log-linear Models}
+이 표현은 일반적인 구조화된 예측 문제를 설명하고 있으며, 주어진 입력 $x$ (예: 문장)을 출력 $y$ (예: 태그 시퀀스)로 매핑하는 문제를 다루고 있습니다. 여기서 $f(y, x) \in R^d$는 feature vector, $θ ∈ R^d$는 weighted vector, 그리고 $s = (s_1, . . . , s_|Y|)$는 각 출력에 대한 score vector입니다. 여기서 $sy = f(y, x) · θ$로 정의되며, 이것은 출력 $y$와 입력 $x$에 대한 feature vector $f(y, x)$와 weighted vector $θ$의 내적입니다. 이것은 로그-선형 모델을 정의하는 것입니다.
+
+\begin{align}
+    p(\textbf{y} \vert x ; \theta) = exp\{s_\textbf{y} - A(\textbf{s}) \},
+\end{align}
+
+여기서 $A(s)$는 로그-파티션 함수를 나타내며, $A(s) = log \sum_y exp\{s_\textbf{y}\}$와 같이 정의됩니다. 주어진 예제 $(x, \textbf{y})$에 대한 파라미터 추정은 $p(\textbf{y} | x; \theta)$를 최대화하기 위해 $\theta$를 선택하는 것을 의미합니다. 즉, 주어진 입력 x와 출력 y에 대해 가중치 벡터 θ를 선택하여 조건부 확률 $p(\textbf{y} | x; \theta)$를 최대화하는 것이 목표입니다.\\
+
+Feature Noising의 핵심 아이디어는 특성 벡터 $f(\textbf{y}, x)$를 임의로 손상시켜 어떤 ˜f(y, x)로 만든 다음, 이러한 손상된 특성을 고려하여 y의 평균 로그-우도를 최대화하는 것입니다. 이러한 손상된 특성에 대응하는 ˜s, p˜(y | x; θ)라고 가정합니다. 또한 특성 노이징이 평균을 보존한다고 가정합니다: E[˜f(y, x)] = f(y, x), 따라서 E[˜s] = s입니다. 이것은 노이징 스키마 목록에 설명된대로 노이징된 특성을 조절하여 항상 수행할 수 있습니다.\\
+
+feature noising을 정규화의 한 형태로 보는 것이 유용합니다. feature noising은 평균을 보존하기 때문에 feature noising 목적 함수는 원래의 로그-우도와 로그 정규화 상수의 차이로 나타낼 수 있습니다. 이것은 다음과 같이 표현할 수 있습니다:
+
+
+\begin{align}
+    E[\log \tilde{p}(y | x; \theta)] &= E[\tilde{s}y - A(\tilde{s})] \\
+    &= \log p(y | x; \theta) - R(\theta, x) \\
+    R(\theta, x) &\equiv E[A(\tilde{s})] - A(s)
+\end{align}
+
+
+$A(\cdot)$는 covex이기 때문에, $R(\theta, x)$ 은 젠슨부등식으로 인해 항상 positive하고 
+정규화항으로 해석할 수 있다. $R(\theta, x)$은 일반적으로 non-convex하다.
+
+정규화항 (4)을 계산하려면 모든 가능한 noise가 추가된 feature vector에 대한 합을 계산해야 하며, 이는 피처의 수에 exponential effort를 의미할 수 있습니다. 심지어 flat classification에 대해서도 이는 계산하기 불가능합니다. Bishop (1995) 및 Wager et al. (2013)을 따라 우리는 노이즈가 추가된 score vector ˜s의 로그-파티션 함수 $A(\cdot)$를 ˜s의 평균과 공분산만 사용하여 근사화하고 이를 통해 작업할 수 있도록 2차 근사값을 취합니다.
+
+\begin{align}
+    A(\tilde{s}) \approx A(s) + \nabla A(s)^T(\tilde{s} - s) + \frac{1}{2}(\tilde{s} - s)^T \nabla^2 A(s)(\tilde{s} - s).
+\end{align}
+
+(5)식을 (4)식에 넣으면,새 정규화 항 $R_q(\theta, x)$을 얻고, 이것을 $R(\theta, x)$의 근사치로 사용할 것입니다.:
+
+\begin{align}
+R_q(\theta, x) &= \frac{1}{2} E[(\tilde{s} - s)^T \nabla^2 A(s)(\tilde{s} - s)] \\
+&= \frac{1}{2} \operatorname{tr}(\nabla^2 A(s) \operatorname{Cov}(\tilde{s}))
+\end{align}
+
+이 표현에는 여전히 두 가지의 잠재적인 비실용적인 요소가 있습니다. 지수적인 수의 노이즈가 추가된 점수 벡터 ˜s에 대한 합과 ˜s의 |Y| 개의 구성 요소에 대한 합이 있습니다.
+
+다중 클래스 분류의 경우, ˜s의 구성 요소가 독립적이라고 가정한다면 Cov(˜s)는 R |Y|×|Y|의 diagonal matrix이며, 다음과 같이 표현할 수 있습니다.
+
+\begin{align}
+R_q(\theta, x) = \frac{1}{2} \sum_{y \in Y} \mu_y(1 - \mu_y) \text{Var}[\tilde{s}_y] \quad
+\end{align}
+
+평균은 $\mu_y \stackrel{\text{def}}{=} p_{\theta}(y \vert x)$는 모델 확률을 나타내며, 분산은 $\mu_y(1-\mu_y)$ 은 모델의 불확실성을 측정합니다. 그리고 (9) 식은,
+
+\begin{align}
+    Var[\tilde{s}_y] = \theta^T \text{Cov}[\tilde{f}(\textbf{y}, x)]\theta
+\end{align}
+
+feature noising으로부터 발생한 불확실성을 측정합니다. 정규화 항 $R^q(θ, x)$은 두 가지 분산 항의 곱으로 구성됩니다. 첫 번째 항은 θ에 대해 non-convex하며, 두 번째 항은 θ에 대해 quadratic합니다. 이 정규화를 최소화하는 것은 (i) 확신 있는 예측을 하는 모델과 (ii) 특징 노이즈에 노출되더라도 안정된 점수를 유지하는 모델을 선호함을 의미합니다.\\
+
+다중 클래스 분류의 경우 정규화를 계산하기 위해 모든 y ∈ Y를 명시적으로 합산할 수 있지만 구조화된 예측에 대해서는 계산이 불가능할 것입니다. 여기서는 단기간 동안 다중 클래스 분류로 특화되도록 가정하겠습니다. 각 출력 y에 대해 동일한 특징 벡터 g(x)에 적용되는 별도의 가중치 벡터를 가지고 있다고 가정하면, 스코어 sy = θy·g(x)가 됩니다. 또한, 노이즈가 추가된 특징 벡터 g˜(x)의 구성 요소가 서로 독립적이라고 가정합니다. 그러면 (9)를 다음과 같이 단순화할 수 있습니다.:
+
+\begin{align}
+    \text{Var}[\tilde{s}_y] = \sum_j \text{Var}[g_j(x)]\theta_y_j^2.
+\end{align}
+
+
+\end{document}
