@@ -51,24 +51,11 @@ MASS_ridge$coef
 glmnet_ridge$beta
 
 
-
 ###############################################################################
 '''릿지 회귀에서 최적의 λ 값을 선택하기 위해
 10-fold 교차 검증을 수행하는 cv.ridge_reg 함수를 만드세요.
 '''
 ###############################################################################
-# dataset
-n <- 200; p <- 4; N <- 500; M <- 20
-beta <- c(1, -1, 0.5, 0)
-mu <- rep(0, p)
-Sigma <- matrix(0.9, nrow = p, ncol = p)
-diag(Sigma) <- 1
-X <- MASS::mvrnorm(n, mu, Sigma)
-y <- X %*% beta + rnorm(n, sd = 5)
-
-# gird serach
-lam <- seq(0, 10, length = N)
-
 cv.ridge_reg <- function(X, y, lambda_vals, k)
 {
   results <- list()  # 결과를 저장할 리스트 초기화
@@ -93,16 +80,49 @@ cv.ridge_reg <- function(X, y, lambda_vals, k)
     
     for (j in 1:N)
     {
-      y_pred <- as.matrix(y_hat[1:20, j])
-      fold_mse[j] <- apply((y_pred - y_test)^2, 2, mean) # y_pred와 y_test dimmension이 매칭이 안됌 즉, 다른 데이터셋을 넣었을 때 문제가 발생 확인할 것
+      y_pred <- as.matrix(y_hat[1:nrow(X_test), j])
+      fold_mse[j] <- apply((y_pred - y_test)^2, 2, mean)
     }
     
     MSE[i] <- fold_mse[which.min(fold_mse)]
     Lam[i] <- lambda_vals[which.min(fold_mse)]
   }
-  ans <- list(lambda = mean(Lam), MSE = mean(MSE))
+  ans <- list(optim_lambda = mean(Lam), optim_MSE = mean(MSE), lambda = Lam, mse = MSE)
   return(ans)
 }
+##############################################
+## Simulation_1, dataset, 10-folds ###########
+##############################################
+# dataset
+n <- 200; p <- 4; N <- 10000; M <- 20
+beta <- c(1, -1, 0.5, 0)
+mu <- rep(0, p)
+Sigma <- matrix(0.9, nrow = p, ncol = p)
+diag(Sigma) <- 1
+X <- MASS::mvrnorm(n, mu, Sigma)
+y <- X %*% beta + rnorm(n, sd = 5)
 
-result <- cv.ridge_reg(X, y, lambda_vals = lam, k = 10)
+# gird serach
+lam <- seq(0, 10, length = N)
+
+result <- cv.ridge_reg(X, y, lambda_vals = lam, k = 30)
+result
+
+
+##############################################
+## Simulation_2, another dataset, 30-folds ###
+##############################################
+# dataset
+n <- 200; p <- 4; N <- 10000; M <- 20
+beta <- c(1, -1, 0.5, 0)
+mu <- rep(0, p)
+Sigma <- matrix(0.9, nrow = p, ncol = p)
+diag(Sigma) <- 1
+X <- MASS::mvrnorm(n, mu, Sigma)
+y <- X %*% beta + rnorm(n, sd = 5)
+
+# gird serach
+lam <- seq(0, 10, length = N)
+
+result <- cv.ridge_reg(X, y, lambda_vals = lam, k = 30)
 result
