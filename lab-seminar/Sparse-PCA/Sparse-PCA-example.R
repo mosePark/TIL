@@ -19,3 +19,5 @@ names(out2)
 ## to get the loadings
 out2$loadings
 # }
+
+### from documentaiton of elasticnet package example code in R.
