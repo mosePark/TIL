@@ -1,0 +1,247 @@
+\documentclass{article}
+
+\usepackage{amsmath, amsthm, amssymb, amsfonts}
+\usepackage{thmtools}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{framed}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tcolorbox}
+\usepackage{kotex}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+
+\colorlet{LightGray}{White!90!Periwinkle}
+\colorlet{LightOrange}{Orange!15}
+\colorlet{LightGreen}{Green!15}
+
+\newcommand{\HRule}[1]{\rule{\linewidth}{#1}}
+
+\declaretheoremstyle[name=Theorem,]{thmsty}
+\declaretheorem[style=thmsty,numberwithin=section]{theorem}
+\tcolorboxenvironment{theorem}{colback=LightGray}
+
+\declaretheoremstyle[name=Proposition,]{prosty}
+\declaretheorem[style=prosty,numberlike=theorem]{proposition}
+\tcolorboxenvironment{proposition}{colback=LightOrange}
+
+\declaretheoremstyle[name=Principle,]{prcpsty}
+\declaretheorem[style=prcpsty,numberlike=theorem]{principle}
+\tcolorboxenvironment{principle}{colback=LightGreen}
+
+\setstretch{1.2}
+\geometry{
+    textheight=9in,
+    textwidth=5.5in,
+    top=1in,
+    headheight=12pt,
+    headsep=25pt,
+    footskip=30pt
+}
+\author{Mose Park}
+% ------------------------------------------------------------------------------
+
+\begin{document}
+
+% ------------------------------------------------------------------------------
+% Cover Page and ToC
+% ------------------------------------------------------------------------------
+
+\title{ \normalsize \textsc{}
+		\\ [2.0cm]
+		\HRule{1.8pt} \\
+		\LARGE \textbf{\uppercase{Recommendation Algorithm}
+		\HRule{2.0pt} \\ [0.6cm] \LARGE{Appendix} \vspace*{10\baselineskip}}
+		}
+\date{}
+
+\maketitle
+\newpage
+
+\tableofcontents
+\newpage
+
+% ------------------------------------------------------------------------------
+
+\section{Build up}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=10cm]{rec-algorithm-netflix/why.jpg}
+    \caption{Why need Recommendation algorithm?}
+    \label{fig.1}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=10cm]{rec-algorithm-netflix/content-filtering.jpg}
+    \caption{content-based}
+    \label{fig.2}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=10cm]{rec-algorithm-netflix/collabo-filtering.jpg}
+    \caption{collabo-filtering}
+    \label{fig.3}
+\end{figure}
+\newpage
+% ------------------------------------------------------------------------------
+
+\subsection{collabo-neighbor method}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{rec-algorithm-netflix/fig1__.jpg}
+    \caption{neighbor-method}
+    \label{fig.4}
+\end{figure}
+
+\subsection{Latent factor model}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{rec-algorithm-netflix/latent-factor.jpg}
+    \caption{latent-method}
+    \label{fig.5}
+\end{figure}
+\newpage
+
+% ------------------------------------------------------------------------------
+\section{Basic of Matrix Factorization}
+For each item \textbf{q} associated with vector \( q_i \in \mathbb{R}^f \) and each user \textbf{u} is associated with a vector \( p_i \in \mathbb{R}^f \).
+
+\begin{align}
+    \hat{r}_{ui} = q_i^\top p_u
+\end{align}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{rec-algorithm-netflix/eq-1.jpg}
+    \caption{Matrix factorzaiton, simalar with SVD}
+    \label{fig.6}
+\end{figure}
+
+\par
+
+The meaning of the user matrix means how much each user is interested in factors, and the item matrix means how much each item has. The major challenge is computing the mapping of each item and user to factor vectors. \\
+Earlier systems relied on imputation to fill in missing 
+ratings and make the rating matrix dense.2
+ However, \textbf{imputation} can be very expensive as it significantly increases 
+the amount of data. In addition, inaccurate imputation 
+might distort the data considerably.
+
+% ------------------------------------------------------------------------------
+\newpage
+
+Now, To consider the sparse conditions, consider the optimization problem as follows.
+
+\begin{align}
+\min_{\mathbf{q}_*, \mathbf{p}_*} \sum_{(u, i) \in \kappa} \left( r_{ui} - \mathbf{q}_i^\top \mathbf{p}_u \right)^2 + \lambda \left( \|\mathbf{q}_i\|^2 + \|\mathbf{p}_u\|^2 \right)
+\end{align}
+
+Here, κ is the set of the (u,i) pairs for which $r_ui$ is known 
+(the training set).
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{rec-algorithm-netflix/sparse.jpg}
+    \caption{Matrix factorzaiton}
+\end{figure}
+
+\section{Adding Bias}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{rec-algorithm-netflix/bias.jpg}
+
+\end{figure}
+
+\newpage
+Definition of bias is
+\begin{align}
+    b_{ui} = \mu + b_i + b_u
+\end{align}
+Equation1 + biase terms as follows :
+\begin{align}
+    \hat{r}_{ui} - \mathbf{q}_i^\top \mathbf{p}_u  = \mu + b_i + b_u\
+\end{align}
+
+
+Now, objective fuction is global average + item bias + user bias + user-item interaction.
+\begin{align}
+\min_{\mathbf{p}_*, \mathbf{q}_*, b_*} \sum_{(u, i) \in \kappa} \left( r_{ui} - \mu - b_u - b_i - \mathbf{p}_u^\top \mathbf{q}_i \right)^2 + \lambda \left( \|\mathbf{p}_u\|^2 + \|\mathbf{q}_i\|^2 + b_u^2 + b_i^2 \right)
+\end{align}
+
+\section{Additional input sources}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{rec-algorithm-netflix/Normal.jpg}
+
+\end{figure}
+
+\begin{align}
+\hat{r}_{ui} = \mu + b_i + b_u + q_i^T \left( p_u + \left|N(u)\right|^{-0.5} \sum_{i \in N(u)} x_i \sum_{a \in A_u} y_{ia} \right)
+\end{align}
+
+What's mean x and y? \\
+
+\newpage
+
+\section{Algorithm}
+\subsection{Compute SGD}
+
+Computing gradient of the obj ft (2),
+\begin{align*}
+    f(p, q) &= (r_{ui} - q_{i}^T p_{u})^2 + \lambda (\| q_{i} \|^2 + \| p_{u} \|^2) \\
+    \frac{\partial f}{\partial q_{i}} &= -2(r_{ui} - q_{i}^T p_{u})p_u + 2\lambda q_i
+\end{align*}
+    by error of definition and $\gamma$ is opposite direction of the gradient, yielding :
+
+\begin{align*}
+q_{i} &\leftarrow q_{i} + \gamma \cdot \lambda \cdot (e_{ui} \cdot p_{u} - q_{i}) \\
+p_{u} &\leftarrow p_{u} + \gamma \cdot \lambda \cdot (e_{ui} \cdot q_{i} - p_{u})
+\end{align*}
+
+Updates to $p_i$ are calculated in the same way.
+
+\subsection{ALS : Alternating least squares}
+
+Let Obj fuction. First, One of the factors is fixed.
+
+\begin{align*}
+\min_{p_u} \left\| r_u - Qp_u \right\|^2 + \lambda \left\| p_u \right\|^2 \\
+\min_{q_i} \left\| r_i - Pq_i \right\|^2 + \lambda \left\| q_i \right\|^2
+\end{align*}
+
+To simplify obj ft.
+\begin{align*}
+L(p_u) &= \| r_u - Qp_u \|^2 + \lambda \| p_u \|^2 \\
+       &= (r_u - Qp_u)^T(r_u - Qp_u) + \lambda p_u^T p_u \\
+       &= r_u^T r_u - r_u^T Qp_u - p_u^T Q^T r_u + p_u^T Q^T Qp_u + \lambda p_u^T p_u \\
+       &= r_u^T r_u - 2r_u^T Qp_u + p_u^T Q^T Qp_u + \lambda p_u^T p_u
+\end{align*}
+
+Next, Computing partial gradient.
+\begin{align*}
+\frac{\partial L(p_u)}{\partial p_u} &= \frac{\partial}{\partial p_u} (r_u^T r_u - 2r_u^T Qp_u + p_u^T Q^T Qp_u + \lambda p_u^T p_u) \\
+       &= -2r_u^T Q + 2p_u^T Q^T Q + 2\lambda p_u^T
+\end{align*}
+
+Lastly, Computing optim parmeter.
+\begin{align*}
+-2r_u^T Q + 2p_u^T Q^T Q + 2\lambda p_u^T &= 0 \\
+p_u^T (Q^T Q + \lambda I) &= r_u^T Q \\
+(Q^T Q + \lambda I)p_u &= Q^T r_u \\[5pt]
+p_u = (Q^T Q + \lambda I)^{-1}Q^T r_u
+\end{align*}
+
+
+\end{document}
