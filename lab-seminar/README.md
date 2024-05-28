@@ -1,4 +1,4 @@
-# lab seminar pt paper list
+# lab seminar paper list
 
   - Feature Noising for Log-linear Structured Prediction
   - Sparse Principal Component Analysis
