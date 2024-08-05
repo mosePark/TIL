@@ -10,3 +10,5 @@
   - Multiple Testing in Nonparametric Hidden Markov Models: An Empirical Bayes Approach
   - High-dimensional differential networks with sparsity and reduced-rank
   - Large language model validity via enhanced conformal prediction methods
+
+I am interested in graphical model, XAI and NLP.
