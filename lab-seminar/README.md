@@ -10,6 +10,6 @@
   - Multiple Testing in Nonparametric Hidden Markov Models: An Empirical Bayes Approach
   - High-dimensional differential networks with sparsity and reduced-rank
   - Large language model validity via enhanced conformal prediction methods
-  - APeek into Token Bias: Large Language Models Are Not Yet Genuine Reasoners
+  - A Peek into Token Bias: Large Language Models Are Not Yet Genuine Reasoners
 
-I am interested in graphical model, XAI and LLM.
+I am interested in graphical model, XAI and LLM(Statistical approach).
