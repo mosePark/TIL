@@ -14,5 +14,6 @@ List of Papers I Have Personally Presented
   - High-dimensional differential networks with sparsity and reduced-rank
   - Large language model validity via enhanced conformal prediction methods
   - A Peek into Token Bias: Large Language Models Are Not Yet Genuine Reasoners
+  - Testing high-dimensional multinomials with applications to text analysis
 
 I am interested in graphical model, XAI and LLM(Statistical approach).
