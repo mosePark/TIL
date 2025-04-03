@@ -2,5 +2,5 @@
 
 Today I Learned :pencil2:
 
-lab-seminar
-  - Selectinf Lab seminar → interested in "clustering", "diffential privacy" and "XAI".
+sy
+  - analysis assistant 20250325 ~ ing
